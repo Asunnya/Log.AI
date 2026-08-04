@@ -65,6 +65,7 @@ class LLMClient:
             "model": self.model,
             "messages": list(messages),
             "response_format": response_schema, 
+            "temperature": self.temperature
 
         }
 
@@ -80,8 +81,7 @@ class LLMClient:
             raise EmptyLLMResponseError("Mensagem vazia")
 
         try: 
-            response_schema.model_validate_json(content)
-            return content
+            return response_schema.model_validate_json(content)
         except ValidationError as e:
             content_preview =  content[:1_000]
 

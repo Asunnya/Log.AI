@@ -7,7 +7,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 from log_ai.llm.client import LLMClient
-from log_ai.llm.config_inference import render_drain3_masking_section, infer_drain_config
+from log_ai.parsing.config_inference import update_drain3_ini, infer_drain_config
 
 def parse_arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
@@ -20,10 +20,10 @@ def parse_arguments() -> argparse.Namespace:
         help="Text file containing one log sample per line.",
     )
     parser.add_argument(
-        "--output",
-        type=Path, 
-        default=Path("drain_masking.ini"), 
-        help="Destination DRain3 INI file.",
+        "--config",
+        type=Path,
+        required=True,
+        help="Existing Drain3 INI configuration file to update.",
     )
 
     return parser.parse_args()
@@ -31,7 +31,13 @@ def parse_arguments() -> argparse.Namespace:
 def main() -> None:
     load_dotenv()
     arguments = parse_arguments()
-    model = os.environ("LLM_MODEL")
+    model = os.getenv("LLM_MODEL")
+
+
+    if not model:
+        raise RuntimeError(
+            "Environment variable LLM_MODEL is not configured."
+        )
 
     client = LLMClient(
         model=model, 
@@ -49,15 +55,14 @@ def main() -> None:
         log_lines=log_lines
     )
 
-    ini_content = render_drain3_masking_section(config)
-
-    arguments.output.write_text(
-        ini_content,
-        encoding="utf-8"
+    update_drain3_ini(
+        ini_path=arguments.config,
+        config=config
     )
 
+
     print(config.model_dump_json(indent=2))
-    print(f"Configuration written to: {arguments.output}")
+    print(f"Configuration updated in: {arguments.config}")
 
 if __name__ == "__main__":
     main()

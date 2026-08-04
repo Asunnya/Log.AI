@@ -16,7 +16,7 @@ class MaskingInstruction(BaseModel):
     
     """
     
-    modelconfig = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid")
     
     regex_pattern: str = Field(
         min_length=1, 

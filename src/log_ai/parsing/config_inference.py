@@ -1,13 +1,11 @@
 
 from __future__ import annotations
 
-import argparse
 import json
-import os
+import configparser
 from collections.abc import Sequence
 from pathlib import Path
 
-from dotenv import load_dotenv
 
 from log_ai.llm.client import LLMClient
 from log_ai.llm.models import DrainConfig
@@ -77,6 +75,67 @@ def infer_drain_config(
         messages=messages,
         response_schema=DrainConfig
     )
+
+def update_drain3_ini(
+    ini_path :Path,
+    config: DrainConfig,
+)-> None:
+
+        if not ini_path.exists():
+            raise FileNotFoundError(
+                f"Drain3 configuration file not found : {ini_path}"
+            )
+
+        parser = configparser.ConfigParser(
+            interpolation=None
+        )
+
+        parser.optionxform = str 
+
+        parser.read(
+            ini_path,
+            encoding="utf-8"
+        )
+
+        if not parser.has_section("MASKING"):
+            parser.add_section("MASKING")
+
+        masking_data = [
+            instruction.model_dump()
+            for instruction in config.masking
+        ]
+
+        parser.set(
+            "MASKING",
+            "masking",
+            json.dumps(
+                masking_data, 
+                ensure_ascii=False, 
+            )
+        )
+
+        parser.set(
+            "MASKING",
+            "mask_prefix",
+            config.mask_prefix
+        )
+
+        parser.set(
+            "MASKING",
+            "mask_suffix",
+            config.mask_suffix
+        )
+
+        temporary_path = ini_path.with_suffix(
+            f"{ini_path.suffix}.tmp"
+        )
+
+        with temporary_path.open(
+            "w",
+            encoding="utf-8",
+        ) as ini_file:
+            parser.write(ini_file)
+        temporary_path.replace(ini_path)
 
 
 def render_drain3_masking_section(config: DrainConfig)-> str:
