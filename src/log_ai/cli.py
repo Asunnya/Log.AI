@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 
 from log_ai.llm.client import LLMClient
 from log_ai.parsing.config_inference import update_drain3_ini, infer_drain_config
+from log_ai.parsing.template_miner import mine_templates
 
 def parse_arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
@@ -24,6 +25,10 @@ def parse_arguments() -> argparse.Namespace:
         type=Path,
         required=True,
         help="Existing Drain3 INI configuration file to update.",
+    )
+
+    parser.add_argument(
+        "--template-output", type=Path, default=Path("data/templates.jsonl", help="template output path")
     )
 
     return parser.parse_args()
@@ -63,6 +68,9 @@ def main() -> None:
 
     print(config.model_dump_json(indent=2))
     print(f"Configuration updated in: {arguments.config}")
+
+    mine_templates(log_path=arguments.input_file, config_path=arguments.config, output_path=arguments.template_output)
+    print(f"Templates saved in: {arguments.template_output}")
 
 if __name__ == "__main__":
     main()
