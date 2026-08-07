@@ -28,7 +28,9 @@ def parse_arguments() -> argparse.Namespace:
     )
 
     parser.add_argument(
-        "--template-output", type=Path, default=Path("data/templates.jsonl", help="template output path")
+        "--template-output", type=Path, 
+        default=Path("data/templates.jsonl"), 
+        help="template output path"
     )
 
     return parser.parse_args()

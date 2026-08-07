@@ -2,13 +2,14 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any, Mapping, TypedDict
+from typing import Any, Mapping
 
 from drain3 import TemplateMiner
 from drain3.template_miner_config import TemplateMinerConfig
+from dataclasses import dataclass
 
-
-class TemplateRecord(TypedDict):
+@dataclass
+class TemplateRecord:
     """Schema de cada registro gravado no arquivo JSONL."""
 
     line_number: int
