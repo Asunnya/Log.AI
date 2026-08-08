@@ -9,38 +9,72 @@ from dotenv import load_dotenv
 from log_ai.llm.client import LLMClient
 from log_ai.parsing.config_inference import update_drain3_ini, infer_drain_config
 from log_ai.parsing.template_miner import mine_templates
+from log_ai.embedding.grouping import load_template_records, group_by_template, write_template_groups
 
 def parse_arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Infer a Drain3 masking configuration from log samples"
     )
 
-    parser.add_argument(
+    subparsers = parser.add_subparsers(
+        dest="command",
+        required=True
+    )
+
+    # -------------------------
+    # comando: mine
+    # -------------------------
+
+    parser_mine = subparsers.add_parser("mine")
+
+    parser_mine.add_argument(
         "input_file",
         type=Path, 
         help="Text file containing one log sample per line.",
     )
-    parser.add_argument(
+    parser_mine.add_argument(
         "--config",
         type=Path,
         required=True,
         help="Existing Drain3 INI configuration file to update.",
     )
 
-    parser.add_argument(
+    parser_mine.add_argument(
         "--template-output", type=Path, 
         default=Path("data/templates.jsonl"), 
         help="template output path"
     )
 
+    # -------------------------
+    # comando: group
+    # -------------------------
+    parser_group = subparsers.add_parser("group")
+
+    parser_group.add_argument(
+        "template_path",
+        type=Path, 
+        help="caminho para template.jsonl",
+    )
+    parser_group.add_argument(
+        "--output", type=Path, 
+        default=Path("data/template_groups.jsonl"), 
+        help="template group output path"
+    )
+
+
+
     return parser.parse_args()
 
-def main() -> None:
-    load_dotenv()
-    arguments = parse_arguments()
+
+def _run_group(arguments: argparse.Namespace) -> None:
+    
+    json_data = load_template_records(arguments.template_path)
+    groups = group_by_template(json_data)
+    write_template_groups(groups, arguments.output)
+
+
+def _run_mine(arguments: argparse.Namespace) -> None:
     model = os.getenv("LLM_MODEL")
-
-
     if not model:
         raise RuntimeError(
             "Environment variable LLM_MODEL is not configured."
@@ -73,6 +107,19 @@ def main() -> None:
 
     mine_templates(log_path=arguments.input_file, config_path=arguments.config, output_path=arguments.template_output)
     print(f"Templates saved in: {arguments.template_output}")
+
+def main() -> None:
+    commands = {
+        "mine": _run_mine,
+        "group": _run_group
+    }
+
+    load_dotenv()
+    arguments = parse_arguments()
+  
+
+    commands[arguments.command](arguments)
+
 
 if __name__ == "__main__":
     main()

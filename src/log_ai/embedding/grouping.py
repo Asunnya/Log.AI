@@ -7,6 +7,9 @@ from collections.abc import Iterable
 import json 
 from log_ai.parsing.template_miner import TemplateRecord
 from dataclasses import dataclass, field
+from dataclasses import asdict 
+
+
 
 @dataclass
 class TemplateGroup:
@@ -50,4 +53,18 @@ def group_by_template (records: Iterable[TemplateRecord])-> list[TemplateGroup]:
 
     return listTG
 
-    
+def write_template_groups(groups: list[TemplateGroup], output_path: Path) -> None:
+    """Extrai templates agrupados e os persiste em JSONL.
+
+    Entrada:
+        groups: lista de templates agrupados pelo groupbytemplate
+        output_path: arquivo JSONL que será criado ou sobrescrito.
+
+    Saída:
+        A função retorna ``None``.
+
+    """
+
+    with(output_path.open("w", encoding="utf-8") as output_file):
+        for group in groups:
+            output_file.write(json.dumps(asdict(group), ensure_ascii=False) + "\n")
