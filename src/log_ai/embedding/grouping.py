@@ -68,3 +68,14 @@ def write_template_groups(groups: list[TemplateGroup], output_path: Path) -> Non
     with(output_path.open("w", encoding="utf-8") as output_file):
         for group in groups:
             output_file.write(json.dumps(asdict(group), ensure_ascii=False) + "\n")
+
+
+def load_template_groups(path: Path) -> list[TemplateGroup]:
+    json_data = []
+    with open(path) as data: 
+        for line in data:
+            parsed = json.loads(line)
+            json_data.append(TemplateGroup(**parsed))
+    return json_data
+
+

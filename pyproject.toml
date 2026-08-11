@@ -8,6 +8,7 @@ dependencies = [
     "drain3>=0.9.11",
     "litellm>=1.95.0",
     "python-dotenv>=1.2.2",
+    "sentence-transformers>=5.7.0",
 ]
 
 [project.scripts]

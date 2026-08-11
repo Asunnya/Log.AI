@@ -10,7 +10,7 @@ from log_ai.llm.client import LLMClient
 from log_ai.parsing.config_inference import update_drain3_ini, infer_drain_config
 from log_ai.parsing.template_miner import mine_templates
 from log_ai.embedding.grouping import load_template_records, group_by_template, write_template_groups
-
+from log_ai.embedding.embedder import build_template_embeddings
 def parse_arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Infer a Drain3 masking configuration from log samples"
@@ -56,13 +56,26 @@ def parse_arguments() -> argparse.Namespace:
         help="caminho para template.jsonl",
     )
     parser_group.add_argument(
-        "--output", type=Path, 
+        "--group-output", type=Path, 
         default=Path("data/template_groups.jsonl"), 
         help="template group output path"
     )
 
+    # -------------------------
+    # comando: embed
+    # -------------------------
 
-
+    parser_embed = subparsers.add_parser("embed")
+    parser_embed.add_argument(
+        "group_path", 
+        type=Path, 
+        help="caminho para TemplatesGroup.jsonl",
+    )
+    parser_embed.add_argument(
+        "--embed-output", type=Path, 
+        default=Path("data/embeddings.npy"), 
+        help="template group output path"
+    )
     return parser.parse_args()
 
 
@@ -70,7 +83,17 @@ def _run_group(arguments: argparse.Namespace) -> None:
     
     json_data = load_template_records(arguments.template_path)
     groups = group_by_template(json_data)
-    write_template_groups(groups, arguments.output)
+    write_template_groups(groups, arguments.group_output)
+
+
+def _run_embed(arguments: argparse.Namespace) -> None: 
+    model_embed = os.getenv("EMBED_MODEL")
+    if not model_embed:
+        raise RuntimeError(
+            "Environment variable EMBED_MODEL is not configured."
+        )
+
+    build_template_embeddings(arguments.group_path, arguments.embed_output, model_embed)
 
 
 def _run_mine(arguments: argparse.Namespace) -> None:
@@ -111,7 +134,8 @@ def _run_mine(arguments: argparse.Namespace) -> None:
 def main() -> None:
     commands = {
         "mine": _run_mine,
-        "group": _run_group
+        "group": _run_group,
+        "embed": _run_embed
     }
 
     load_dotenv()
