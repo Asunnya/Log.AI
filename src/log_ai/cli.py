@@ -11,6 +11,8 @@ from log_ai.parsing.config_inference import update_drain3_ini, infer_drain_confi
 from log_ai.parsing.template_miner import mine_templates
 from log_ai.embedding.grouping import load_template_records, group_by_template, write_template_groups
 from log_ai.embedding.embedder import build_template_embeddings
+from log_ai.embedding.clustering import assign_semantic_cluster
+
 def parse_arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Infer a Drain3 masking configuration from log samples"
@@ -76,6 +78,29 @@ def parse_arguments() -> argparse.Namespace:
         default=Path("data/embeddings.npy"), 
         help="template group output path"
     )
+
+
+    # -------------------------
+    # comando: cluster
+    # -------------------------
+
+    parser_cluster = subparsers.add_parser("cluster")
+    parser_cluster.add_argument(
+        "group_path", 
+        type=Path, 
+        help="caminho para TemplatesGroup.jsonl",
+    )
+    parser_cluster.add_argument(
+        "embed_path", type=Path, 
+        help="Input path for embeddings path"
+    )    
+    
+    parser_cluster.add_argument(
+        "--min-cluster-size", type=int,
+        default=5,
+        help="min size to cluster"
+    )
+    
     return parser.parse_args()
 
 
@@ -94,6 +119,9 @@ def _run_embed(arguments: argparse.Namespace) -> None:
         )
 
     build_template_embeddings(arguments.group_path, arguments.embed_output, model_embed)
+
+def _run_cluster(arguments: argparse.Namespace) -> None:
+    assign_semantic_cluster(arguments.group_path, arguments.embed_path, arguments.min_cluster_size)
 
 
 def _run_mine(arguments: argparse.Namespace) -> None:
@@ -135,7 +163,8 @@ def main() -> None:
     commands = {
         "mine": _run_mine,
         "group": _run_group,
-        "embed": _run_embed
+        "embed": _run_embed,
+        "cluster": _run_cluster
     }
 
     load_dotenv()

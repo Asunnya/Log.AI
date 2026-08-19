@@ -18,6 +18,7 @@ class TemplateGroup:
 
     line_numbers: list[int] = field(default_factory=list)
     count: int  = 0 
+    semantic_cluster: int  = -1 
 
 
 def load_template_records(path: Path) -> list[TemplateRecord]:
