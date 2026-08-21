@@ -9,10 +9,10 @@ from dotenv import load_dotenv
 from log_ai.llm.client import LLMClient
 from log_ai.parsing.config_inference import update_drain3_ini, infer_drain_config
 from log_ai.parsing.template_miner import mine_templates
-from log_ai.embedding.grouping import load_template_records, group_by_template, write_template_groups
+from log_ai.embedding.grouping import load_template_records, group_by_template, write_template_groups, load_template_groups
 from log_ai.embedding.embedder import build_template_embeddings
 from log_ai.embedding.clustering import assign_semantic_cluster
-
+from log_ai.router.taxonomy_discovery import agreggated_semantic_cluster, write_aggregated_semantic_cluster
 def parse_arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Infer a Drain3 masking configuration from log samples"
@@ -100,6 +100,23 @@ def parse_arguments() -> argparse.Namespace:
         default=5,
         help="min size to cluster"
     )
+
+    # -------------------------
+    # comando: aggregate
+    # -------------------------
+
+    parser_aggregate = subparsers.add_parser("aggregate")
+    parser_aggregate.add_argument(
+        "group_path", 
+        type=Path, 
+        help="caminho para TemplatesGroup.jsonl",
+    )
+    parser_aggregate.add_argument(
+        "--summary-output", type=Path, 
+        default=Path("data/cluster_summaries.json"), 
+        help="Output cluster summary"
+    )
+
     
     return parser.parse_args()
 
@@ -122,6 +139,12 @@ def _run_embed(arguments: argparse.Namespace) -> None:
 
 def _run_cluster(arguments: argparse.Namespace) -> None:
     assign_semantic_cluster(arguments.group_path, arguments.embed_path, arguments.min_cluster_size)
+
+
+def _run_aggregate(arguments: argparse.Namespace) ->  None:
+    clusters  = agreggated_semantic_cluster(load_template_groups(arguments.group_path))
+    write_aggregated_semantic_cluster(clusters, arguments.summary_output)
+
 
 
 def _run_mine(arguments: argparse.Namespace) -> None:
@@ -164,7 +187,8 @@ def main() -> None:
         "mine": _run_mine,
         "group": _run_group,
         "embed": _run_embed,
-        "cluster": _run_cluster
+        "cluster": _run_cluster, 
+        "aggregate": _run_aggregate
     }
 
     load_dotenv()

@@ -6,7 +6,7 @@ from typing import Any, Mapping
 
 from drain3 import TemplateMiner
 from drain3.template_miner_config import TemplateMinerConfig
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
 
 @dataclass
 class TemplateRecord:
@@ -82,7 +82,7 @@ def mine_templates(
                 result=result,
             )
 
-            output_file.write(json.dumps(record, ensure_ascii=False))
+            output_file.write(json.dumps(asdict(record), ensure_ascii=False))
             output_file.write("\n")
             processed_lines += 1
 

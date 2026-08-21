@@ -1,0 +1,17 @@
+[
+  {
+    "semantic_cluster": 0,
+    "count": 1927,
+    "representative_template": "- <TIMESTAMP> <DATE> <*> <*> <*> RAS KERNEL <*> <*> <*>"
+  },
+  {
+    "semantic_cluster": 1,
+    "count": 24,
+    "representative_template": "- <TIMESTAMP> <DATE> <*> <*> <*> NULL DISCOVERY INFO Node card VPD check: <*> node in processor card slot <*> do not match. VPD ecid <*> found <*>"
+  },
+  {
+    "semantic_cluster": 2,
+    "count": 8,
+    "representative_template": "- <TIMESTAMP> <DATE> UNKNOWN LOCATION <*> UNKNOWN LOCATION NULL DISCOVERY INFO Ido chip status changed: <*> ip=<IP> <*> <*> status=M <*> <*> <*> <*> PDT 2005"
+  }
+]
